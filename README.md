@@ -16,14 +16,14 @@
 Currently Linux is the only supported platform, but there are plans for
 extending our reach.
 
-<details>
+
 ## Linux <a name="linux"></a>
 
 
 ### Compile
 
-<details>
-<details>
+
+
 
 ### Binary
 
