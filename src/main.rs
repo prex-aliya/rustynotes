@@ -116,7 +116,7 @@ fn premove(string: String, list: &mut Vec<String>) -> &mut Vec<String> {
         if secondary[x].parse::<usize>().is_ok() {
             let num: usize = secondary[x].parse().unwrap();
             if num <= list.len()-1 {
-                if !num < 1 {
+                if !num > 1 {
                     list.remove(num);
                 }
             }
@@ -133,12 +133,11 @@ fn cross_off_list(list: &mut Vec<String>, string: String) -> &mut Vec<String> {
     println!("{}", string);
     let secondary: Vec<String> = number_input(string);
 
-    for x in 0..1 {
-        //if secondary[x].parse::<usize>().is_ok() {
+    for x in (0..secondary.len()).rev() {
         if is_string_numeric(&secondary[x]) {
             let num: usize = secondary[x].parse().unwrap();
-            if num <= list.len() {
-                if !num < 1 {
+            if num < list.len() {
+                if !num > 1 {
                     if list[num].contains("\x1b[0;31m~~") {
                         list[num] = list[num].replace("\x1b[0;31m~~", "");
                         list[num] = list[num].replace("~~\x1b[0m", "");
