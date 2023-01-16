@@ -14,27 +14,24 @@ const WRITEDIR: &str = "/tmp/foo";
 
 
 /* Misc {{{ */
-fn _help() {
-}
-fn verbose(input: &str, print: bool) {
+pub fn _help() {}
+pub fn verbose(input: &str, print: bool) {
     if print == true {
         println!("[*] {}", input);
     }
 }
-fn _warning() {
-}
-fn exit_error(input: &str, exit_code: i32) {
+pub fn exit_error(input: &str, exit_code: i32) {
     println!("[-] ERROR: {}", input);
     /*https://iq.opengenus.org/terminate-and-pause-in-rust/#2usingabortfunction*/
     exit(exit_code);
 }
 
-fn get_date() -> String {
+pub fn get_date() -> String {
     let now: DateTime<Utc> = Utc::now();
 
     now.format("%d-%m-%Y\n").to_string()
 }
-fn lines_from_file(filename: impl AsRef<Path>) -> Vec<String> {
+pub fn lines_from_file(filename: impl AsRef<Path>) -> Vec<String> {
     if !std::path::Path::new(WRITEDIR).exists() {
         std::fs::File::create(WRITEDIR).ok();
     }
@@ -44,12 +41,12 @@ fn lines_from_file(filename: impl AsRef<Path>) -> Vec<String> {
         .map(|l| l.expect("Could not parse line"))
         .collect()
 }
-fn write_to_file(input: &Vec<String>) -> Result<(), Box<dyn Error>> {
+pub fn write_to_file(input: &Vec<String>) -> Result<(), Box<dyn Error>> {
     let mut file = std::fs::File::create(WRITEDIR)?;
     writeln!(file, "{}", input.join("\n").trim())?;
     Ok(())
 }
-fn is_crossedout(input: &String) -> bool {
+pub fn is_crossedout(input: &String) -> bool {
     let mut crossnum: i8 = 0;
     for c in input.chars() {
         if c == '~' {
@@ -62,7 +59,7 @@ fn is_crossedout(input: &String) -> bool {
 
     false
 }
-fn is_string_numeric(str: &String) -> bool {
+pub fn is_string_numeric(str: &String) -> bool {
     for c in str.chars() {
         if !c.is_numeric() {
             return false;
@@ -207,7 +204,7 @@ fn shell(is_verbose: bool) {
                 "add"           => { list.push(command_add(&mut input.to_string(), command).to_string()); },
                 "ls" | "list"   => { plist(&list, &list[0]); },
                 "rm"            => { list = premove(input, &mut list).to_vec(); },
-                "w" | "write"   => { write_to_file(&list); },
+                "w" | "write"   => { _ = write_to_file(&list); },
                 "o" | "open"    => { list = open_file(); plist(&list, &list[0]); },
                 "c" | "cross"   => { list = cross_off_list(&mut list, input).to_vec();
                                     plist(&list, &list[0]); },
@@ -223,7 +220,7 @@ fn notify(is_verbose: bool) {
     verbose("Starting Notifications", is_verbose);
 
     loop {
-        run_notify();
+        _ = run_notify();
         sleep(Duration::from_secs(1800));
     }
 
