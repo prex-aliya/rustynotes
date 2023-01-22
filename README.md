@@ -1,5 +1,18 @@
 <center><h1 style="font-size:72px">RUSTY NOTES</h1></center>
 
+```
+///////////////////////////
+WARNING: under construction
+\\\\\\\\\\\\\\\\\\\\\\\\\\\
+```
+
+Rusty notes will be a application that helps you keep a todo list while making
+an easy way for you to keep track of where you found your knowledge and how to
+get back to it, a home made wiki.
+
+Currently it is just a todo list.
+
+
 [IMAGEHERE]()
 
 1. [Install](#install)
@@ -28,7 +41,7 @@ currently test.
 
 # TODO:
 
-- [ ] test
+- [ ] add cli
 
 # Sources <a name="sources"></a>
 
