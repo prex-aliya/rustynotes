@@ -59,6 +59,8 @@ impl Ui {
             ch = getch();
         }
 
+        input.push(output);
+
         noecho();
         cbreak();
 
@@ -98,15 +100,45 @@ fn list_down(list: &Vec<String>, list_curr: &mut usize) {
     }
 }
 /* }}} */
-/* {{{ */
+/* load'n save {{{ */
+/* parse input from file */
+fn parse_item(line: &str) -> Option<(Tab, &str)> {
+    let todo_prefix = "- [ ] ";
+    let done_prefix = "- [X] ";
+
+    if line.starts_with(todo_prefix) {
+        return Some((Tab::Todo, &line[todo_prefix.len()..]))
+    } else if line.starts_with(done_prefix) {
+        return Some((Tab::Done, &line[done_prefix.len()..]))
+    }
+
+    return None;
+}
+/* load state from file */
+fn load_state(todos: &mut Vec<String>, dones: &mut Vec<String>
+              ,file_path: &str){ 
+    let file = File::open(file_path).unwrap();
+    for (row, line) in io::BufReader::new(file).lines().enumerate() {
+        match parse_item(&line.unwrap()) {
+            Some((Tab::Todo, title)) => todos.push(title.to_string()),
+            Some((Tab::Done, title)) => dones.push(title.to_string()),
+            None => {
+                eprintln!("{}:{}: ERROR: invalid formate in item line",
+                          file_path, row + 1);
+                process::exit(1);
+            }
+        }
+    }
+
+}
 fn save_state(todos: &Vec<String>, dones: &Vec<String>
               ,file_path: &str){
     let mut file = File::create(file_path).unwrap();
     for todo in todos.iter() {
-        writeln!(file, "TODO:{}", todo).unwrap();
+        writeln!(file, "- [ ] {}", todo).unwrap();
     }
     for done in dones.iter() {
-        writeln!(file, "DONE:{}", done).unwrap();
+        writeln!(file, "- [X] {}", done).unwrap();
     }
 }
 /* }}} */
@@ -136,17 +168,12 @@ fn main() {
         }
     };
 
-    let mut todos: Vec<String> = vec![
-        "Bey a bread".to_string(),
-        "Write a todo app".to_string(),
-        "Make a cup of tea".to_string(),
-    ];
+    let mut todos: Vec<String> = Vec::<String>::new();
     let mut todo_curr: usize = 0;
-    let mut dones: Vec<String> = vec![
-        "Start the thing".to_string(),
-        "the thing".to_string(),
-    ];
+    let mut dones: Vec<String> = Vec::<String>::new();
     let mut done_curr: usize = 0;
+
+    load_state(&mut todos, &mut dones, &file_path);
 
     initscr();
     noecho(); /* doesnt echo what you type */
@@ -172,7 +199,7 @@ fn main() {
             }
             ui.begin_list(todo_curr);
             for (row, todo) in todos.iter().enumerate() {
-                ui.list_element(&format!("- [ ] {}", todo), row);
+                ui.list_element(&format!("\t[ ] {}", todo), row);
             }
             ui.end_list();
 
@@ -184,7 +211,7 @@ fn main() {
             }
             ui.begin_list(done_curr);
             for (row, done) in dones.iter().enumerate() {
-                ui.list_element(&format!("- [X] {}", done), row);
+                ui.list_element(&format!("\t[X] {}", done), row);
             }
             ui.end_list();
         }
