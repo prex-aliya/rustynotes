@@ -8,17 +8,20 @@ WARNING: under construction
 
 Rusty notes will be a application that helps you keep a todo list while making
 an easy way for you to keep track of where you found your knowledge and how to
-get back to it, a home made wiki.
+get back to it, a homemade wiki.
 
-Currently it is just a todo list.
+Currently, it is just a to-do list.
 
 
 [IMAGEHERE]()
 
+1. [Quick Start](#quick)
 1. [Install](#install)
     1. [Linux](#linux)
 1. [Sources](#sources)
 
+
+# Quick Start<a name="quick"></a>
 
 # Install <a name="install"></a>
 
@@ -27,7 +30,9 @@ extending our reach.
 
 To run use the command:
 
-    cargo run
+```console
+    cargo run TODO
+```
 
 Withing the projects directory
 
