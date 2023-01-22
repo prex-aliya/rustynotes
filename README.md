@@ -41,13 +41,7 @@ currently test.
 
 # TODO:
 
-<p>&nbsp;</p>
-<p>README.txt</p>
-<p>&nbsp;</p>
-<div id="list">
-  <p><iframe src="TODO" frameborder="0" height="400"
-      width="95%"></iframe></p>
-</div>
+in TODO file
 
 # Sources <a name="sources"></a>
 
