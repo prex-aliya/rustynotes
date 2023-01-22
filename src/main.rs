@@ -118,14 +118,14 @@ fn parse_item(line: &str) -> Option<(Tab, &str)> {
 fn load_state(todos: &mut Vec<String>, dones: &mut Vec<String>
               ,file_path: &str){ 
     let file = File::open(file_path).unwrap();
-    for (row, line) in io::BufReader::new(file).lines().enumerate() {
+    for line in io::BufReader::new(file).lines() {
         match parse_item(&line.unwrap()) {
             Some((Tab::Todo, title)) => todos.push(title.to_string()),
             Some((Tab::Done, title)) => dones.push(title.to_string()),
             None => {
-                eprintln!("{}:{}: ERROR: invalid formate in item line",
-                          file_path, row + 1);
-                process::exit(1);
+                //eprintln!("{}:{}: ERROR: invalid formate in item line",
+                          //file_path, row + 1);
+                //process::exit(1);
             }
         }
     }
@@ -143,6 +143,14 @@ fn save_state(todos: &Vec<String>, dones: &Vec<String>
 }
 /* }}} */
 
+fn list_delete(list: &mut Vec<String>, curr: &mut usize) {
+    if *curr < list.len() {
+        list.remove(*curr);
+        if *curr >= list.len() && !list.is_empty() {
+            *curr = list.len() - 1;
+        }
+    }
+}
 fn list_transfer( dst: &mut Vec<String>, src: &mut Vec<String>,
                   src_curr: &mut usize
     ){
@@ -236,11 +244,15 @@ fn main() {
                 Tab::Todo => list_transfer(&mut dones, &mut todos, &mut todo_curr),
                 Tab::Done => list_transfer(&mut todos, &mut dones, &mut done_curr),
             },
-            '\t' => { tab = tab.toggle(); },
             'i' => match tab {
                 Tab::Todo => ui.insert_element(&mut todos),
                 Tab::Done => ui.insert_element(&mut dones),
             }
+            'D' => match tab {
+                Tab::Todo => list_delete(&mut todos, &mut todo_curr),
+                Tab::Done => list_delete(&mut dones, &mut done_curr),
+            }
+            '\t' => { tab = tab.toggle(); },
             _ => {}
         }
     }

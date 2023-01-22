@@ -1,5 +1,6 @@
-- [ ] Get a life
 - [ ] Make a todo list
-- [ ] Update README
-- [ ] welcome
+- [ ] Add cli
+- [ ] Add intake from existing markdown
+- [ ] Add markdown date parser
 - [X] Take Out Trash
+- [X] Update README
