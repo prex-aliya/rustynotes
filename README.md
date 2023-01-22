@@ -13,7 +13,7 @@ get back to it, a homemade wiki.
 Currently, it is just a to-do list.
 
 
-[IMAGEHERE]()
+[IMAGEHERE](.img/todo.png)
 
 1. [Quick Start](#quick)
 1. [Install](#install)
