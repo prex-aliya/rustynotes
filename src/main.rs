@@ -172,7 +172,7 @@ fn main() {
             }
             ui.begin_list(todo_curr);
             for (row, todo) in todos.iter().enumerate() {
-                ui.list_element(&format!("\t[ ] {}", todo), row);
+                ui.list_element(&format!("- [ ] {}", todo), row);
             }
             ui.end_list();
 
@@ -184,7 +184,7 @@ fn main() {
             }
             ui.begin_list(done_curr);
             for (row, done) in dones.iter().enumerate() {
-                ui.list_element(&format!("\t[X] {}", done), row);
+                ui.list_element(&format!("- [X] {}", done), row);
             }
             ui.end_list();
         }
