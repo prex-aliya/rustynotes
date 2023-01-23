@@ -1,4 +1,5 @@
 use ncurses::*;
+use ncurses::ll::vw_printw;
 use std::fs::File;
 use std::io::{self, Write, BufRead};
 use std::env;
@@ -184,8 +185,8 @@ fn main() {
     load_state(&mut todos, &mut dones, &file_path);
 
     initscr();
-    noecho(); /* doesnt echo what you type */
-    curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
+    noecho(); // doesnt echo what you type 
+    curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE); // no display cursor
 
     start_color();
     init_pair(REGULAR_PAIR, COLOR_WHITE, COLOR_BLACK);
@@ -239,7 +240,7 @@ fn main() {
                 Tab::Todo => list_down(&todos, &mut todo_curr),
                 Tab::Done => list_down(&dones, &mut done_curr), 
             },
-            'a' => done_curr += 1,
+            //'a' => vw_printw(initscr(), "da{}", "test"),
             '\n' => match tab {
                 Tab::Todo => list_transfer(&mut dones, &mut todos, &mut todo_curr),
                 Tab::Done => list_transfer(&mut todos, &mut dones, &mut done_curr),
@@ -259,7 +260,7 @@ fn main() {
 
     save_state(&todos, &dones, &file_path);
 
-    endwin();
+    endwin(); // Restore terminal to normal behavior
 }
 
 #[cfg(test)]
