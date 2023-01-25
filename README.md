@@ -1,7 +1,7 @@
 <!-- https://codinhood.com/nano/git/center-images-text-github-readme-->
 <h1 align="center" style="font-size:72px">RUSTY NOTES</h1>
 
-<p align="center">
+<p align="center" color="color:Tomato">
 //////////////////////////////////////////////////////////////<br>
 WARNING: Under Construction<br>
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
