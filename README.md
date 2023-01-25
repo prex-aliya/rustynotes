@@ -1,12 +1,13 @@
-<center><h1 style="font-size:72px">RUSTY NOTES</h1></center>
+<!-- https://codinhood.com/nano/git/center-images-text-github-readme-->
+<h1 align="center" style="font-size:72px">RUSTY NOTES</h1>
 
-```
-///////////////////////////
-WARNING: under construction
-\\\\\\\\\\\\\\\\\\\\\\\\\\\
-```
+<p align="center">
+//////////////////////////////////////////////////////////////<br>
+WARNING: Under Construction<br>
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+</p>
 
-Rusty notes will be a application that helps you keep a todo list while making
+Rusty notes will be a application that helps you keep a to-do list while making
 an easy way for you to keep track of where you found your knowledge and how to
 get back to it, a homemade wiki.
 
@@ -46,7 +47,14 @@ currently test.
 
 # TODO:
 
-in TODO file
+- [ ] Add CLI
+- [ ] Add intake from existing markdown
+- [ ] Add markdown date parser
+- [ ] Multi Screens?
+        - See windows_cli repo 
+- [X] Make a to-do list
+- [X] Take Out Trash
+- [X] Update README
 
 # Sources <a name="sources"></a>
 
