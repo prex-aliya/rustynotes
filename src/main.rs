@@ -1,5 +1,4 @@
 use ncurses::*;
-use ncurses::ll::vw_printw;
 use std::fs::File;
 use std::io::{self, Write, BufRead};
 use std::env;
@@ -16,6 +15,7 @@ struct Ui {
     list_curr: Option<Id>,
     row: usize,
     col: usize,
+    layer: usize,
 }
 
 impl Ui {
@@ -95,9 +95,19 @@ fn list_up(list_curr: &mut usize) {
         *list_curr -= 1;
     }
 }
+fn list_left(currlay: &mut usize) {
+    if *currlay > 0 {
+        *currlay -= 1;
+    }
+}
 fn list_down(list: &Vec<String>, list_curr: &mut usize) {
     if *list_curr + 1 < list.len() {
         *list_curr += 1;
+    }
+}
+fn list_right(list: &Vec<Vec<String>>, currlay: &mut usize) {
+    if *currlay + 1 < list.len() {
+        *currlay += 1;
     }
 }
 /* }}} */
@@ -106,8 +116,10 @@ fn list_down(list: &Vec<String>, list_curr: &mut usize) {
 fn parse_item(line: &str) -> Option<(Tab, &str)> {
     let todo_prefix = "- [ ] ";
     let done_prefix = "- [X] ";
-
-    if line.starts_with(todo_prefix) {
+    
+    if line.starts_with("#") {
+        return Some((Tab::Todo, "#"))
+    } else if line.starts_with(todo_prefix) {
         return Some((Tab::Todo, &line[todo_prefix.len()..]))
     } else if line.starts_with(done_prefix) {
         return Some((Tab::Done, &line[done_prefix.len()..]))
@@ -116,12 +128,16 @@ fn parse_item(line: &str) -> Option<(Tab, &str)> {
     return None;
 }
 /* load state from file */
-fn load_state(todos: &mut Vec<String>, dones: &mut Vec<String>
-              ,file_path: &str){ 
+fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
+              ,file_path: &str) { 
+
+    let mut currlay: i32 = 0;
+
     let file = File::open(file_path).unwrap();
     for line in io::BufReader::new(file).lines() {
         match parse_item(&line.unwrap()) {
-            Some((Tab::Todo, title)) => todos.push(title.to_string()),
+            Some((Tab::Todo, "#")) => currlay += 1,
+            Some((Tab::Todo, title)) => todos[currlay as usize].push(title.to_string()),
             Some((Tab::Done, title)) => dones.push(title.to_string()),
             None => {
                 //eprintln!("{}:{}: ERROR: invalid formate in item line",
@@ -132,18 +148,20 @@ fn load_state(todos: &mut Vec<String>, dones: &mut Vec<String>
     }
 
 }
-fn save_state(todos: &Vec<String>, dones: &Vec<String>
+fn save_state(todos: &Vec<Vec<String>>, dones: &Vec<String>
               ,file_path: &str){
     let mut file = File::create(file_path).unwrap();
-    for todo in todos.iter() {
-        writeln!(file, "- [ ] {}", todo).unwrap();
+    for x in 0..todos.len() {
+        for todo in todos[x].iter() {
+            writeln!(file, "- [ ] {}", todo).unwrap();
+        }
     }
     for done in dones.iter() {
         writeln!(file, "- [X] {}", done).unwrap();
     }
 }
 /* }}} */
-
+/* list edit {{{ */
 fn list_delete(list: &mut Vec<String>, curr: &mut usize) {
     if *curr < list.len() {
         list.remove(*curr);
@@ -162,6 +180,7 @@ fn list_transfer( dst: &mut Vec<String>, src: &mut Vec<String>,
         }
     }
 }
+/* }}} */
 
 
 fn main() {
@@ -177,12 +196,10 @@ fn main() {
         }
     };
 
-    let mut todos: Vec<String> = Vec::<String>::new();
+    let mut todos: Vec<Vec<String>> = vec![vec![]];
     let mut todo_curr: usize = 0;
     let mut dones: Vec<String> = Vec::<String>::new();
     let mut done_curr: usize = 0;
-
-    load_state(&mut todos, &mut dones, &file_path);
 
     initscr();
     noecho(); // doesnt echo what you type 
@@ -197,6 +214,8 @@ fn main() {
     let mut quit = false;
 
     let mut ui = Ui::default();
+    load_state(&mut todos, &mut dones, &file_path);
+    todos.push(vec!["test 9".to_string()]);
     while !quit {
         erase();
         //ui.notification();
@@ -207,7 +226,7 @@ fn main() {
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
             }
             ui.begin_list(todo_curr);
-            for (row, todo) in todos.iter().enumerate() {
+            for (row, todo) in todos[ui.layer].iter().enumerate() {
                 ui.list_element(&format!("\t[ ] {}", todo), row);
             }
             ui.end_list();
@@ -237,20 +256,30 @@ fn main() {
                 Tab::Done => list_up(&mut done_curr), 
             },
             'j' => match tab {
-                Tab::Todo => list_down(&todos, &mut todo_curr),
+                Tab::Todo => list_down(&todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_down(&dones, &mut done_curr), 
             },
+
+            'l' => match tab {
+                Tab::Todo => list_right(&mut todos, &mut ui.layer),
+                Tab::Done => {}, 
+            },
+            'h' => match tab {
+                Tab::Todo => list_left(&mut ui.layer),
+                Tab::Done => {}, 
+            },
+
             //'a' => vw_printw(initscr(), "da{}", "test"),
             '\n' => match tab {
-                Tab::Todo => list_transfer(&mut dones, &mut todos, &mut todo_curr),
-                Tab::Done => list_transfer(&mut todos, &mut dones, &mut done_curr),
+                Tab::Todo => list_transfer(&mut dones, &mut todos[ui.layer], &mut todo_curr),
+                Tab::Done => list_transfer(&mut todos[ui.layer], &mut dones, &mut done_curr),
             },
             'i' => match tab {
-                Tab::Todo => ui.insert_element(&mut todos),
+                Tab::Todo => ui.insert_element(&mut todos[ui.layer]),
                 Tab::Done => ui.insert_element(&mut dones),
             }
             'D' => match tab {
-                Tab::Todo => list_delete(&mut todos, &mut todo_curr),
+                Tab::Todo => list_delete(&mut todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_delete(&mut dones, &mut done_curr),
             }
             '\t' => { tab = tab.toggle(); },
