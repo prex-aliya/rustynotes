@@ -77,7 +77,8 @@ impl Ui {
 #[derive(Debug)]
 enum Tab {
     Todo,
-    Done
+    Done,
+    Other
 }
 
 impl Tab {
@@ -85,6 +86,7 @@ impl Tab {
         match self {
             Tab::Todo => Tab::Done,
             Tab::Done => Tab::Todo,
+            _ => Tab::Done,
         }
     }
 }
@@ -116,9 +118,10 @@ fn list_right(list: &Vec<Vec<String>>, currlay: &mut usize) {
 fn parse_item(line: &str) -> Option<(Tab, &str)> {
     let todo_prefix = "- [ ] ";
     let done_prefix = "- [X] ";
+    let commit_prefix = "# ";
     
-    if line.starts_with("#") {
-        return Some((Tab::Todo, "#"))
+    if line.starts_with(commit_prefix) {
+        return Some((Tab::Other, &line[commit_prefix.len()..]))
     } else if line.starts_with(todo_prefix) {
         return Some((Tab::Todo, &line[todo_prefix.len()..]))
     } else if line.starts_with(done_prefix) {
@@ -136,7 +139,10 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
     let file = File::open(file_path).unwrap();
     for line in io::BufReader::new(file).lines() {
         match parse_item(&line.unwrap()) {
-            Some((Tab::Todo, "#")) => currlay += 1,
+            Some((Tab::Other, title)) => {
+                currlay += 1;
+                todos.push(vec![title.to_string()]);
+            },
             Some((Tab::Todo, title)) => todos[currlay as usize].push(title.to_string()),
             Some((Tab::Done, title)) => dones.push(title.to_string()),
             None => {
@@ -152,7 +158,8 @@ fn save_state(todos: &Vec<Vec<String>>, dones: &Vec<String>
               ,file_path: &str){
     let mut file = File::create(file_path).unwrap();
     for x in 0..todos.len() {
-        for todo in todos[x].iter() {
+        writeln!(file, "# {}", todos[x][0]).unwrap();
+        for todo in todos[x].iter().skip(1) {
             writeln!(file, "- [ ] {}", todo).unwrap();
         }
     }
@@ -222,8 +229,10 @@ fn main() {
         ui.begin(0, 0);
         {
             match tab {
+                //Tab::Todo => ui.label(format!("[TODO]: {}", todos[ui.layer][0]).as_str(), REGULAR_PAIR),
                 Tab::Todo => ui.label("[TODO]: ", REGULAR_PAIR),
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
+                _ => {},
             }
             ui.begin_list(todo_curr);
             for (row, todo) in todos[ui.layer].iter().enumerate() {
@@ -236,6 +245,7 @@ fn main() {
             match tab {
                 Tab::Todo => ui.label(" DONE : ", REGULAR_PAIR),
                 Tab::Done => ui.label("[DONE]: ", REGULAR_PAIR),
+                _ => {},
             }
             ui.begin_list(done_curr);
             for (row, done) in dones.iter().enumerate() {
@@ -254,33 +264,40 @@ fn main() {
             'k' => match tab {
                 Tab::Todo => list_up(&mut todo_curr),
                 Tab::Done => list_up(&mut done_curr), 
+                _ => {},
             },
             'j' => match tab {
                 Tab::Todo => list_down(&todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_down(&dones, &mut done_curr), 
+                _ => {},
             },
 
             'l' => match tab {
                 Tab::Todo => list_right(&mut todos, &mut ui.layer),
                 Tab::Done => {}, 
+                _ => {},
             },
             'h' => match tab {
                 Tab::Todo => list_left(&mut ui.layer),
                 Tab::Done => {}, 
+                _ => {},
             },
 
             //'a' => vw_printw(initscr(), "da{}", "test"),
             '\n' => match tab {
                 Tab::Todo => list_transfer(&mut dones, &mut todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_transfer(&mut todos[ui.layer], &mut dones, &mut done_curr),
+                _ => {},
             },
             'i' => match tab {
                 Tab::Todo => ui.insert_element(&mut todos[ui.layer]),
                 Tab::Done => ui.insert_element(&mut dones),
+                _ => {},
             }
             'D' => match tab {
                 Tab::Todo => list_delete(&mut todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_delete(&mut dones, &mut done_curr),
+                _ => {},
             }
             '\t' => { tab = tab.toggle(); },
             _ => {}

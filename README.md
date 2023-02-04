@@ -50,8 +50,8 @@ currently test.
 - [ ] Add CLI
 - [ ] Add intake from existing markdown
 - [ ] Add markdown date parser
-- [ ] Multi Screens?
-        - See windows_cli repo 
+- [ ] Fix if no first item in first window
+- [X] Multiple lists
 - [X] Make a to-do list
 - [X] Take Out Trash
 - [X] Update README
