@@ -114,6 +114,7 @@ fn list_right(list: &Vec<Vec<String>>, currlay: &mut usize) {
 }
 /* }}} */
 /* load'n save {{{ */
+/* TODO: Rework load */
 /* parse input from file */
 fn parse_item(line: &str) -> Option<(Tab, &str)> {
     let todo_prefix = "- [ ] ";
@@ -134,14 +135,25 @@ fn parse_item(line: &str) -> Option<(Tab, &str)> {
 fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
               ,file_path: &str) { 
 
-    let mut currlay: i32 = 0;
+    let /*mut*/ currlay: i32 = 0;
 
+    /* TODO:
+     * use std::fs::read_dir() to get the files in a direcotry.
+     *
+     * let paths = fn::read_dir("./").unwrap();
+     * for paths in paths {} 
+     */
+
+    /* Future This Point to Directory */
     let file = File::open(file_path).unwrap();
+
+    todos[0][0] = file_path.to_string();
+    //todos.push(vec![file_path.to_string()]);
+
     for line in io::BufReader::new(file).lines() {
         match parse_item(&line.unwrap()) {
-            Some((Tab::Other, title)) => {
-                currlay += 1;
-                todos.push(vec![title.to_string()]);
+            Some((Tab::Other, _)) => {
+                break;
             },
             Some((Tab::Todo, title)) => todos[currlay as usize].push(title.to_string()),
             Some((Tab::Done, title)) => dones.push(title.to_string()),
@@ -154,12 +166,12 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
     }
 
 }
+
 fn save_state(todos: &Vec<Vec<String>>, dones: &Vec<String>
               ,file_path: &str){
     let mut file = File::create(file_path).unwrap();
     for x in 0..todos.len() {
-        writeln!(file, "# {}", todos[x][0]).unwrap();
-        for todo in todos[x].iter().skip(1) {
+        for todo in todos[x].iter() {
             writeln!(file, "- [ ] {}", todo).unwrap();
         }
     }
