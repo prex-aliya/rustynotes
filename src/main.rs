@@ -10,6 +10,8 @@ const HIGHLIGHT_PAIR: i16 = 2;
 type Id = usize;
 
 /* ui {{{ */
+
+/* TODO: add todos list and the dones list to the Ui struct */
 #[derive(Default)]
 struct Ui {
     list_curr: Option<Id>,
@@ -67,6 +69,7 @@ impl Ui {
         let mut output: String = Default::default();
 
         let mut ch = getch();
+        mv((self.row as i32), (self.col as i32));
         while ch as u8 as char != '\n' {
             output.push(ch as u8 as char);
             ch = getch();
@@ -89,8 +92,7 @@ impl Ui {
 #[derive(Debug)]
 enum Tab {
     Todo,
-    Done,
-    Other
+    Done
 }
 
 impl Tab {
@@ -98,7 +100,6 @@ impl Tab {
         match self {
             Tab::Todo => Tab::Done,
             Tab::Done => Tab::Todo,
-            _ => Tab::Done,
         }
     }
 }
@@ -249,7 +250,6 @@ fn main() {
             match tab {
                 Tab::Todo => ui.label("[TODO]: ", REGULAR_PAIR),
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
-                _ => {},
             }
             ui.begin_list(todo_curr);
             for (row, todo) in todos[ui.layer].iter().enumerate() {
@@ -260,7 +260,6 @@ fn main() {
             match tab {
                 Tab::Todo => ui.label(" DONE : ", REGULAR_PAIR),
                 Tab::Done => ui.label("[DONE]: ", REGULAR_PAIR),
-                _ => {},
             }
             ui.begin_list(done_curr);
             for (row, done) in dones.iter().enumerate() {
@@ -279,40 +278,33 @@ fn main() {
             'k' => match tab {
                 Tab::Todo => list_up(&mut todo_curr),
                 Tab::Done => list_up(&mut done_curr), 
-                _ => {},
             },
             'j' => match tab {
                 Tab::Todo => list_down(&todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_down(&dones, &mut done_curr), 
-                _ => {},
             },
 
             'l' => match tab {
                 Tab::Todo => list_right(&mut todos, &mut ui.layer),
                 Tab::Done => {}, 
-                _ => {},
             },
             'h' => match tab {
                 Tab::Todo => list_left(&mut ui.layer),
                 Tab::Done => {}, 
-                _ => {},
             },
 
             //'a' => vw_printw(initscr(), "da{}", "test"),
             '\n' => match tab {
                 Tab::Todo => list_transfer(&mut dones, &mut todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_transfer(&mut todos[ui.layer], &mut dones, &mut done_curr),
-                _ => {},
             },
             'i' => match tab {
                 Tab::Todo => ui.insert_element(&mut todos[ui.layer]),
                 Tab::Done => ui.insert_element(&mut dones),
-                _ => {},
             }
             'D' => match tab {
                 Tab::Todo => list_delete(&mut todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_delete(&mut dones, &mut done_curr),
-                _ => {},
             }
             '\t' => { tab = tab.toggle(); },
             _ => {}
