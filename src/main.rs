@@ -231,26 +231,30 @@ fn main() {
     noecho(); // doesnt echo what you type 
     curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE); // no display cursor
 
-    use_default_colors();
-    start_color();
-    init_pair(REGULAR_PAIR, COLOR_WHITE, -1);
+    use_default_colors(); /* Get default colors to not change the background colors with -1 */
+    start_color(); /* Start Colors */
+    init_pair(REGULAR_PAIR, COLOR_WHITE, -1); /* Regular color */
     init_pair(HIGHLIGHT_PAIR, COLOR_BLACK, COLOR_WHITE);
+    /* Highlighting color in highlighting elements */
 
 
-    let mut tab = Tab::Todo;
-    let mut quit = false;
+    let mut tab = Tab::Todo;        /* Initilize Tab enum */
+    let mut ui = Ui::default();     /* Initilize Ui enum*/
 
-    let mut ui = Ui::default();
-    load_state(&mut todos, &mut dones, &file_path);
-    while !quit {
+    load_state(&mut todos, &mut dones, &file_path); /* Loads elements from file */
+
+    /* Loops into infinity untill break */
+    'main: loop {
         erase();
-        //ui.notification();
         ui.begin(0, 0);
         {
+            //ui.notification();
+            /* TODO improve ui (overhal needed) */
             match tab {
                 Tab::Todo => ui.label("[TODO]: ", REGULAR_PAIR),
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
             }
+
             ui.begin_list(todo_curr);
             for (row, todo) in todos[ui.layer].iter().enumerate() {
                 ui.list_element(&format!("\t[ ] {}", todo), row);
@@ -273,8 +277,13 @@ fn main() {
         refresh();
 
         let key = getch();
-        match key as u8 as char {
-            'q' => quit = true,
+        match key as u8 as char { 
+            /* Convert key to u8, to correctly.
+             * Convert into a character. */
+
+            'q' => break 'main,
+
+            /* TODO: Find better method of matching. */
             'k' => match tab {
                 Tab::Todo => list_up(&mut todo_curr),
                 Tab::Done => list_up(&mut done_curr), 
@@ -293,20 +302,22 @@ fn main() {
                 Tab::Done => {}, 
             },
 
-            //'a' => vw_printw(initscr(), "da{}", "test"),
-            '\n' => match tab {
-                Tab::Todo => list_transfer(&mut dones, &mut todos[ui.layer], &mut todo_curr),
-                Tab::Done => list_transfer(&mut todos[ui.layer], &mut dones, &mut done_curr),
-            },
             'i' => match tab {
                 Tab::Todo => ui.insert_element(&mut todos[ui.layer]),
                 Tab::Done => ui.insert_element(&mut dones),
             }
+
             'D' => match tab {
                 Tab::Todo => list_delete(&mut todos[ui.layer], &mut todo_curr),
                 Tab::Done => list_delete(&mut dones, &mut done_curr),
             }
+
+            '\n' => match tab {
+                Tab::Todo => list_transfer(&mut dones, &mut todos[ui.layer], &mut todo_curr),
+                Tab::Done => list_transfer(&mut todos[ui.layer], &mut dones, &mut done_curr),
+            },
             '\t' => { tab = tab.toggle(); },
+
             _ => {}
         }
     }
