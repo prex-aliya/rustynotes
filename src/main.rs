@@ -4,8 +4,8 @@ use std::io::{self, Write, BufRead};
 use std::env;
 use std::process;
 
-const REGULAR_PAIR: i16 = 0;
-const HIGHLIGHT_PAIR: i16 = 1;
+const REGULAR_PAIR: i16 = 1;
+const HIGHLIGHT_PAIR: i16 = 2;
 
 type Id = usize;
 
@@ -44,7 +44,19 @@ impl Ui {
     fn label(&mut self, text: &str, pair: i16) {
         mv(self.row as i32, self.col as i32);
         attron(COLOR_PAIR(pair));
-        addstr(text);
+
+        let mut output: String = text.to_string();
+        if output.contains("[^") {
+            loop {
+                if output.contains("[^") { output.pop();
+                } else { 
+                    output.pop();
+                    break;
+                }
+            }
+        }
+        addstr(&output);
+
         attroff(COLOR_PAIR(pair));
         self.row += 1;
     }
@@ -122,7 +134,7 @@ fn parse_item(line: &str) -> Option<(Tab, &str)> {
     let commit_prefix = "# ";
     
     if line.starts_with(commit_prefix) {
-        return Some((Tab::Other, &line[commit_prefix.len()..]))
+        return None;
     } else if line.starts_with(todo_prefix) {
         return Some((Tab::Todo, &line[todo_prefix.len()..]))
     } else if line.starts_with(done_prefix) {
@@ -135,7 +147,7 @@ fn parse_item(line: &str) -> Option<(Tab, &str)> {
 fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
               ,file_path: &str) { 
 
-    let /*mut*/ currlay: i32 = 0;
+    let mut currlay: i32 = 0;
 
     /* TODO:
      * use std::fs::read_dir() to get the files in a direcotry.
@@ -147,21 +159,15 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
     /* Future This Point to Directory */
     let file = File::open(file_path).unwrap();
 
-    todos[0][0] = file_path.to_string();
-    //todos.push(vec![file_path.to_string()]);
-
     for line in io::BufReader::new(file).lines() {
         match parse_item(&line.unwrap()) {
-            Some((Tab::Other, _)) => {
-                break;
-            },
             Some((Tab::Todo, title)) => todos[currlay as usize].push(title.to_string()),
             Some((Tab::Done, title)) => dones.push(title.to_string()),
             None => {
-                //eprintln!("{}:{}: ERROR: invalid formate in item line",
-                          //file_path, row + 1);
-                //process::exit(1);
+                currlay += 1;
+                break;
             }
+            _ => {},
         }
     }
 
@@ -224,8 +230,9 @@ fn main() {
     noecho(); // doesnt echo what you type 
     curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE); // no display cursor
 
+    use_default_colors();
     start_color();
-    init_pair(REGULAR_PAIR, COLOR_WHITE, COLOR_BLACK);
+    init_pair(REGULAR_PAIR, COLOR_WHITE, -1);
     init_pair(HIGHLIGHT_PAIR, COLOR_BLACK, COLOR_WHITE);
 
 
@@ -234,14 +241,12 @@ fn main() {
 
     let mut ui = Ui::default();
     load_state(&mut todos, &mut dones, &file_path);
-    todos.push(vec!["test 9".to_string()]);
     while !quit {
         erase();
         //ui.notification();
         ui.begin(0, 0);
         {
             match tab {
-                //Tab::Todo => ui.label(format!("[TODO]: {}", todos[ui.layer][0]).as_str(), REGULAR_PAIR),
                 Tab::Todo => ui.label("[TODO]: ", REGULAR_PAIR),
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
                 _ => {},
@@ -251,8 +256,6 @@ fn main() {
                 ui.list_element(&format!("\t[ ] {}", todo), row);
             }
             ui.end_list();
-
-            //ui.label("------------------------", REGULAR_PAIR);
 
             match tab {
                 Tab::Todo => ui.label(" DONE : ", REGULAR_PAIR),
