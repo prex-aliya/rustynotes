@@ -131,25 +131,27 @@ fn list_right(list: &Vec<Vec<String>>, currlay: &mut usize) {
 /* }}} */
 /* load'n save {{{ */
 /* TODO: Rework load */
-/* parse input from file */
-fn parse_item(line: &str) -> Option<(Tab, &str)> {
-    let todo_prefix = "- [ ] ";
-    let done_prefix = "- [X] ";
-    let commit_prefix = "# ";
-    
-    if line.starts_with(commit_prefix) {
-        return None;
-    } else if line.starts_with(todo_prefix) {
-        return Some((Tab::Todo, &line[todo_prefix.len()..]))
-    } else if line.starts_with(done_prefix) {
-        return Some((Tab::Done, &line[done_prefix.len()..]))
-    }
-
-    return None;
-}
 /* load state from file */
 fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
-              ,file_path: &str) { 
+              ,title: &mut Vec<String> ,file_path: &str) { 
+    fn parse_item(line: &str) -> Option<(Tab, &str)> {
+        let todo_prefix = "- [ ] ";
+        let done_prefix = "- [X] ";
+        let commit_prefix = "# ";
+
+        if line.starts_with(commit_prefix) {
+            return None;
+        } else if line.starts_with(todo_prefix) {
+            return Some((Tab::Todo, &line[todo_prefix.len()..]))
+        } else if line.starts_with(done_prefix) {
+            return Some((Tab::Done, &line[done_prefix.len()..]))
+        }
+
+        return None;
+    }
+    fn item(line: &str) -> &str {
+        return &line[3..];
+    }
 
     let mut currlay: i32 = 0;
 
@@ -162,18 +164,27 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
 
     /* Future This Point to Directory */
     let file = File::open(file_path).unwrap();
+    let reader = io::BufReader::new(file);
 
-    for line in io::BufReader::new(file).lines() {
-        match parse_item(&line.unwrap()) {
-            Some((Tab::Todo, title)) => todos[currlay as usize].push(title.to_string()),
-            Some((Tab::Done, title)) => dones.push(title.to_string()),
-            None => {
-                currlay += 1;
-                break;
-            }
+    for line in reader.lines() {
+        if line.as_ref().unwrap().starts_with("# ") {
+            title.push("TMP".to_string());
+        } else if line.as_ref().unwrap().starts_with("- [ ] ") {
+            todos[currlay as usize].push( item(&line.unwrap()).to_string() );
+        } else if line.as_ref().unwrap().starts_with("- [X] ") {
+            dones.push( item(&line.unwrap()).to_string() );
         }
+        //match parse_item(&line.as_ref().unwrap()) {
+        //    Some((Tab::Todo, title)) => todos[*&currlay as usize].push(title.to_string()),
+        //    Some((Tab::Done, title)) => dones.push(title.to_string()),
+        //    None => {
+        //        //title.push( item(&line.unwrap()) );
+        //        title.push("TMP".to_string());
+        //        currlay += 1;
+        //        break;
+        //    }
+        //}
     }
-
 }
 
 fn save_state(todos: &Vec<Vec<String>>, dones: &Vec<String>
@@ -226,8 +237,10 @@ fn main() {
 
     let mut todos: Vec<Vec<String>> = vec![vec![]];
     let mut todo_curr: usize = 0;
-    let mut _title: Vec<String> = vec![];
+    let mut title: Vec<String> = vec!["Base".to_string()];
     let mut definition: Vec<String> = vec!["This is a temperary number1:todo!()".to_string()];
+
+    //todos.append(vec!["tmp".to_string()]);
 
     let mut dones: Vec<String> = Vec::<String>::new();
     let mut done_curr: usize = 0;
@@ -246,7 +259,7 @@ fn main() {
     let mut tab = Tab::Todo;        /* Initilize Tab enum */
     let mut ui = Ui::default();     /* Initilize Ui enum*/
 
-    load_state(&mut todos, &mut dones, &file_path); /* Loads elements from file */
+    load_state(&mut todos, &mut dones, &mut title, &file_path); /* Loads elements from file */
 
     /* Loops into infinity untill break */
     'main: loop {
@@ -256,7 +269,7 @@ fn main() {
             //ui.notification();
             /* TODO improve ui (overhal needed) */
             match tab {
-                Tab::Todo => ui.label(&format!("[TODO]: ").to_string(), REGULAR_PAIR),
+                Tab::Todo => ui.label(&format!("[TODO]: {}", title[0]).to_string(), REGULAR_PAIR),
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
             }
 
