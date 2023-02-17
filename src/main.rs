@@ -29,7 +29,7 @@ impl Ui {
         assert!(self.list_curr.is_none(), "Nested lists are not allowed");
         self.list_curr = Some(id);
     }
-    fn list_element(&mut self, label: &str, id: Id) -> bool {
+    fn list_element(&mut self, label: &str, id: Id, definition: &mut Vec<String>) -> bool {
         let id_curr = self.list_curr
             .expect("Not allowed to create list elements outside of list");
 
@@ -44,7 +44,7 @@ impl Ui {
             if id_curr == id {
                 /* TODO: Remove redundancy */
                 if label.contains("[^") {
-                    mvprintw(self.row as i32, self.col as i32 + 32, "todo!()");
+                    mvprintw(self.row as i32, self.col as i32 + 32, &definition[0]);
                 }
                 HIGHLIGHT_PAIR
             } else {
@@ -171,7 +171,6 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
                 currlay += 1;
                 break;
             }
-            _ => {},
         }
     }
 
@@ -227,7 +226,8 @@ fn main() {
 
     let mut todos: Vec<Vec<String>> = vec![vec![]];
     let mut todo_curr: usize = 0;
-    let mut definition: Vec<String> = vec![];
+    let mut _title: Vec<String> = vec![];
+    let mut definition: Vec<String> = vec!["This is a temperary number1:todo!()".to_string()];
 
     let mut dones: Vec<String> = Vec::<String>::new();
     let mut done_curr: usize = 0;
@@ -256,13 +256,13 @@ fn main() {
             //ui.notification();
             /* TODO improve ui (overhal needed) */
             match tab {
-                Tab::Todo => ui.label("[TODO]: ", REGULAR_PAIR),
+                Tab::Todo => ui.label(&format!("[TODO]: ").to_string(), REGULAR_PAIR),
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
             }
 
             ui.begin_list(todo_curr);
             for (row, todo) in todos[ui.layer].iter().enumerate() {
-                ui.list_element(&format!("\t[ ] {}", todo), row);
+                ui.list_element(&format!("\t[ ] {}", todo), row, &mut definition);
             }
             ui.end_list();
 
@@ -272,7 +272,7 @@ fn main() {
             }
             ui.begin_list(done_curr);
             for (row, done) in dones.iter().enumerate() {
-                ui.list_element(&format!("\t[X] {}", done), row);
+                ui.list_element(&format!("\t[X] {}", done), row, &mut definition);
             }
             ui.end_list();
         }
