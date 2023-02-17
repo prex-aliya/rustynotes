@@ -183,11 +183,14 @@ fn save_state(todos: &Vec<Vec<String>>, dones: &Vec<String>
               ,file_path: &str, title: &Vec<String> ){
     let mut file = File::create(file_path).unwrap();
     for x in 0..todos.len() {
+        if title[x] != "" {
+            writeln!(file, "# {}", title[x]).unwrap();
+        }
         for todo in todos[x].iter() {
             writeln!(file, "- [ ] {}", todo).unwrap();
         }
-        writeln!(file, "# {}", title[x]).unwrap();
     }
+    writeln!(file, "").unwrap();
     for done in dones.iter() {
         writeln!(file, "- [X] {}", done).unwrap();
     }
@@ -230,7 +233,7 @@ fn main() {
 
     let mut todos: Vec<Vec<String>> = vec![vec![]];
     let mut todo_curr: usize = 0;
-    let mut title: Vec<String> = vec!["Base".to_string()];
+    let mut title: Vec<String> = vec!["".to_string()];
     let mut definition: Vec<String> = vec!["This is a temperary number1:todo!()".to_string()];
     //todos.push(vec!["TEST99".to_string()]);
     let mut dones: Vec<String> = Vec::<String>::new();
@@ -248,7 +251,7 @@ fn main() {
 
 
     let mut tab = Tab::Todo;        /* Initilize Tab enum */
-    let mut ui = Ui::default();     /* Initilize Ui enum*/
+    let mut ui = Ui::default();     /* Initilize Ui enum */
 
     load_state(&mut todos, &mut dones, &mut title, &file_path); /* Loads elements from file */
 
@@ -260,7 +263,7 @@ fn main() {
             //ui.notification();
             /* TODO improve ui (overhal needed) */
             match tab {
-                Tab::Todo => ui.label(&format!("[TODO]: {}", title[0]).to_string(), REGULAR_PAIR),
+                Tab::Todo => ui.label(&format!("[TODO]: {}", title[ui.layer]).to_string(), REGULAR_PAIR),
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
             }
 
