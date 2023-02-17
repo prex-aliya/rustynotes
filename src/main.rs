@@ -176,26 +176,17 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
         } else if line.as_ref().unwrap().starts_with("- [X] ") {
             dones.push( item(&line.unwrap()).to_string() );
         }
-        //match parse_item(&line.as_ref().unwrap()) {
-        //    Some((Tab::Todo, title)) => todos[*&currlay as usize].push(title.to_string()),
-        //    Some((Tab::Done, title)) => dones.push(title.to_string()),
-        //    None => {
-        //        //title.push( item(&line.unwrap()) );
-        //        title.push("TMP".to_string());
-        //        currlay += 1;
-        //        break;
-        //    }
-        //}
     }
 }
 
 fn save_state(todos: &Vec<Vec<String>>, dones: &Vec<String>
-              ,file_path: &str){
+              ,file_path: &str, title: &Vec<String> ){
     let mut file = File::create(file_path).unwrap();
     for x in 0..todos.len() {
         for todo in todos[x].iter() {
             writeln!(file, "- [ ] {}", todo).unwrap();
         }
+        writeln!(file, "# {}", title[x]).unwrap();
     }
     for done in dones.iter() {
         writeln!(file, "- [X] {}", done).unwrap();
@@ -340,7 +331,7 @@ fn main() {
         }
     }
 
-    save_state(&todos, &dones, &file_path);
+    save_state(&todos, &dones, &file_path, &title);
 
     endwin(); // Restore terminal to normal behavior
 }
