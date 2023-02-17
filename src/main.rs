@@ -33,8 +33,16 @@ impl Ui {
         let id_curr = self.list_curr
             .expect("Not allowed to create list elements outside of list");
 
-        self.label(label, {
+        /* Calling self label function */
+        self.label({
+            /* if contains dictionary remove till end */
+            if label.contains("[^") {
+                &label[..label.chars().position(|c| c == '^').unwrap()-1]
+            } else { label }
+        }, {
+            /* if the id is current then highlight it */
             if id_curr == id {
+                mvprintw(self.row as i32, self.col as i32 + 32, "todo!()");
                 HIGHLIGHT_PAIR
             } else {
                 REGULAR_PAIR
@@ -44,20 +52,13 @@ impl Ui {
         return false;
     }
     fn label(&mut self, text: &str, pair: i16) {
+        /* Moves cursor to position */
         mv(self.row as i32, self.col as i32);
+        /* Turn on spacific color */
         attron(COLOR_PAIR(pair));
 
-        let mut output: String = text.to_string();
-        if output.contains("[^") {
-            loop {
-                if output.contains("[^") { output.pop();
-                } else { 
-                    output.pop();
-                    break;
-                }
-            }
-        }
-        addstr(&output);
+        /* Prints */
+        addstr(text);
 
         attroff(COLOR_PAIR(pair));
         self.row += 1;
@@ -69,7 +70,7 @@ impl Ui {
         let mut output: String = Default::default();
 
         let mut ch = getch();
-        mv((self.row as i32), (self.col as i32));
+        mv(self.row as i32, self.col as i32);
         while ch as u8 as char != '\n' {
             output.push(ch as u8 as char);
             ch = getch();
@@ -224,6 +225,8 @@ fn main() {
 
     let mut todos: Vec<Vec<String>> = vec![vec![]];
     let mut todo_curr: usize = 0;
+    let mut definition: Vec<String> = vec![];
+
     let mut dones: Vec<String> = Vec::<String>::new();
     let mut done_curr: usize = 0;
 
