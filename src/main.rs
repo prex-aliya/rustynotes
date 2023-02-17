@@ -42,7 +42,10 @@ impl Ui {
         }, {
             /* if the id is current then highlight it */
             if id_curr == id {
-                mvprintw(self.row as i32, self.col as i32 + 32, "todo!()");
+                /* TODO: Remove redundancy */
+                if label.contains("[^") {
+                    mvprintw(self.row as i32, self.col as i32 + 32, "todo!()");
+                }
                 HIGHLIGHT_PAIR
             } else {
                 REGULAR_PAIR
