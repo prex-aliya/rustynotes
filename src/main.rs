@@ -54,13 +54,12 @@ impl Ui {
     fn label(&mut self, text: &str, pair: i16) {
         /* Moves cursor to position */
         mv(self.row as i32, self.col as i32);
-        /* Turn on spacific color */
+
         attron(COLOR_PAIR(pair));
-
-        /* Prints */
         addstr(text);
-
         attroff(COLOR_PAIR(pair));
+
+        /* Moves it one row down */
         self.row += 1;
     }
     fn insert_element(&mut self, input: &mut Vec<String>) {
