@@ -150,7 +150,7 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
         return None;
     }
     fn item(line: &str) -> &str {
-        return &line[3..];
+        return &line[4..];
     }
 
     let mut currlay: i32 = 0;
