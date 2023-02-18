@@ -7,17 +7,15 @@ use std::process;
 const REGULAR_PAIR: i16 = 1;
 const HIGHLIGHT_PAIR: i16 = 2;
 
-type Id = usize;
 
 /* ui {{{ */
-
 /* TODO: add todos list and the dones list to the Ui struct */
 #[derive(Default)]
 struct Ui {
-    list_curr: Option<Id>,
+    list_curr: usize,
     row: usize,
     col: usize,
-    layer: usize,
+    layer: i32,
 }
 
 impl Ui {
@@ -25,13 +23,13 @@ impl Ui {
         self.row = row;
         self.col = col;
     }
-    fn begin_list(&mut self, id: Id) {
-        assert!(self.list_curr.is_none(), "Nested lists are not allowed");
-        self.list_curr = Some(id);
+    fn begin_list(&mut self, id: usize) {
+        //assert!(self.list_curr.is_none(), "Nested lists are not allowed");
+        self.list_curr = id;
     }
-    fn list_element(&mut self, label: &str, id: Id, definition: &mut Vec<String>) -> bool {
-        let id_curr = self.list_curr
-            .expect("Not allowed to create list elements outside of list");
+    fn list_element(&mut self, label: &str, id: usize, definition: &mut Vec<String>) -> bool {
+        let id_curr = self.list_curr;
+            //.expect("Not allowed to create list elements outside of list");/*TODO*/
 
         /* Calling self label function */
         self.label({
@@ -85,7 +83,7 @@ impl Ui {
 
     }
     fn end_list(&mut self) {
-        self.list_curr = None;
+        self.list_curr = 0;
     }
     fn end(&mut self) {
     }
@@ -113,20 +111,25 @@ fn list_up(list_curr: &mut usize) {
         *list_curr -= 1;
     }
 }
-fn list_left(currlay: &mut usize) {
-    if *currlay > 0 {
-        *currlay -= 1;
-    }
-}
 fn list_down(list: &Vec<String>, list_curr: &mut usize) {
     if *list_curr + 1 < list.len() {
         *list_curr += 1;
     }
 }
-fn list_right(list: &Vec<Vec<String>>, currlay: &mut usize) {
-    if *currlay + 1 < list.len() {
-        *currlay += 1;
+fn list_move(list: &Vec<Vec<String>>, currlay: &mut i32, 
+             direction: i32, list_curr: &mut usize) {
+    let length: i32 = list.len() as i32;
+
+    //if *currlay + direction != 0 {
+    //    *currlay += direction;
+    //}
+    if *currlay + direction != length {
+        *currlay += direction;
     }
+
+    if *currlay < 0 { *currlay = 0 }
+
+    *list_curr = 0;
 }
 /* }}} */
 /* load'n save {{{ */
@@ -263,12 +266,12 @@ fn main() {
             //ui.notification();
             /* TODO improve ui (overhal needed) */
             match tab {
-                Tab::Todo => ui.label(&format!("[TODO]: {}", title[ui.layer]).to_string(), REGULAR_PAIR),
+                Tab::Todo => ui.label(&format!("[TODO]: {}", title[ui.layer as usize]).to_string(), REGULAR_PAIR),
                 Tab::Done => ui.label(" TODO : ", REGULAR_PAIR),
             }
 
             ui.begin_list(todo_curr);
-            for (row, todo) in todos[ui.layer].iter().enumerate() {
+            for (row, todo) in todos[ui.layer as usize].iter().enumerate() {
                 ui.list_element(&format!("\t[ ] {}", todo), row, &mut definition);
             }
             ui.end_list();
@@ -301,32 +304,36 @@ fn main() {
                 Tab::Done => list_up(&mut done_curr), 
             },
             'j' => match tab {
-                Tab::Todo => list_down(&todos[ui.layer], &mut todo_curr),
+                Tab::Todo => list_down(&todos[ui.layer as usize], &mut todo_curr),
                 Tab::Done => list_down(&dones, &mut done_curr), 
             },
 
             'l' => match tab {
-                Tab::Todo => list_right(&mut todos, &mut ui.layer),
+                Tab::Todo => { 
+                    list_move(&mut todos, &mut ui.layer, 1, &mut ui.list_curr);
+                },
                 Tab::Done => {}, 
             },
             'h' => match tab {
-                Tab::Todo => list_left(&mut ui.layer),
+                Tab::Todo => {
+                    list_move(&mut todos, &mut ui.layer, -1, &mut ui.list_curr);
+                },
                 Tab::Done => {}, 
             },
 
             'i' => match tab {
-                Tab::Todo => ui.insert_element(&mut todos[ui.layer]),
+                Tab::Todo => ui.insert_element(&mut todos[ui.layer as usize]),
                 Tab::Done => ui.insert_element(&mut dones),
             }
 
             'D' => match tab {
-                Tab::Todo => list_delete(&mut todos[ui.layer], &mut todo_curr),
+                Tab::Todo => list_delete(&mut todos[ui.layer as usize], &mut todo_curr),
                 Tab::Done => list_delete(&mut dones, &mut done_curr),
             }
 
             '\n' => match tab {
-                Tab::Todo => list_transfer(&mut dones, &mut todos[ui.layer], &mut todo_curr),
-                Tab::Done => list_transfer(&mut todos[ui.layer], &mut dones, &mut done_curr),
+                Tab::Todo => list_transfer(&mut dones, &mut todos[ui.layer as usize], &mut todo_curr),
+                Tab::Done => list_transfer(&mut todos[ui.layer as usize], &mut dones, &mut done_curr),
             },
             '\t' => { tab = tab.toggle(); },
 
