@@ -152,8 +152,8 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
 
         return None;
     }
-    fn item(line: &str) -> &str {
-        return &line[6..];
+    fn item(line: &str, num: usize) -> &str {
+        return &line[num..];
     }
 
     let mut currlay: i32 = 0;
@@ -172,12 +172,12 @@ fn load_state(todos: &mut Vec<Vec<String>>, dones: &mut Vec<String>
     for line in reader.lines() {
         if line.as_ref().unwrap().starts_with("# ") {
             todos.push(vec![]);
-            title.push("TMP".to_string());
+            title.push(item(&line.unwrap(), 2).to_string());
             currlay += 1;
         } else if line.as_ref().unwrap().starts_with("- [ ] ") {
-            todos[currlay as usize].push( item(&line.unwrap()).to_string() );
+            todos[currlay as usize].push( item(&line.unwrap(), 6).to_string() );
         } else if line.as_ref().unwrap().starts_with("- [X] ") {
-            dones.push( item(&line.unwrap()).to_string() );
+            dones.push( item(&line.unwrap(), 6).to_string() );
         }
     }
 }
